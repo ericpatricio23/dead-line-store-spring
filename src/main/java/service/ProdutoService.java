@@ -3,6 +3,7 @@ package service;
 import dto.ProdutoRequestDTO;
 import dto.ProdutoResponseDTO;
 import entity.Produto;
+import exception.ProdutoNotFoundException;
 import org.springframework.stereotype.Service;
 import repository.ProdutoRepository;
 
@@ -49,7 +50,7 @@ public class ProdutoService {
 
     public ProdutoResponseDTO buscarPorId(Long id) {
         Produto produto = produtoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+                .orElseThrow(() -> new ProdutoNotFoundException("Produto não encontrado"));
 
         return new ProdutoResponseDTO(
                 produto.getId(),
@@ -60,7 +61,7 @@ public class ProdutoService {
     }
     public ProdutoResponseDTO atualizar (Long id, ProdutoRequestDTO dto){
         Produto produto = produtoRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Produto não encontrado"));
+                .orElseThrow(()-> new ProdutoNotFoundException("Produto não encontrado"));
 
         produto.setNome(dto.nome());
         produto.setPreco(dto.preco());
@@ -78,7 +79,7 @@ public class ProdutoService {
     }
     public void deletar (Long id) {
         Produto produto = produtoRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Produto não encontrado"));
+                .orElseThrow(()-> new ProdutoNotFoundException("Produto não encontrado"));
                 produtoRepository.delete(produto);
     }
 

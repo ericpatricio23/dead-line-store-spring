@@ -6,6 +6,9 @@ import dto.VendaResponseDTO;
 import entity.ItemVenda;
 import entity.Produto;
 import entity.Venda;
+import exception.EstoqueInsuficienteException;
+import exception.ProdutoNotFoundException;
+import exception.VendaNotFoundException;
 import org.springframework.stereotype.Service;
 import repository.ItemVendaRepository;
 import repository.ProdutoRepository;
@@ -42,12 +45,12 @@ public class VendaService {
     }
     public VendaResponseDTO adicionarItem(Long vendaId, ItemVendaRequestDTO dto ) {
         Venda venda = vendaRepository.findById(vendaId)
-                .orElseThrow(() -> new RuntimeException("Venda não encontrada"));
+                .orElseThrow(() -> new VendaNotFoundException("Venda não encontrada"));
         Produto produto = produtoRepository.findById(dto.produtoId())
-                .orElseThrow(() -> new RuntimeException("Produto não encontradp"));
+                .orElseThrow(() -> new ProdutoNotFoundException("Produto não encontradp"));
 
         if (produto.getEstoque() < dto.quantidade()) {
-            throw new RuntimeException("Estoque insuficiente");
+            throw new EstoqueInsuficienteException("Estoque insuficiente");
         }
 
         ItemVenda item = new ItemVenda();
@@ -79,7 +82,7 @@ public class VendaService {
 
     public VendaResponseDTO buscarPorID(Long id) {
         Venda venda = vendaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Venda não encontrada"));
+                .orElseThrow(() -> new VendaNotFoundException("Venda não encontrada"));
 
         return converterParaDTO(venda);
     }
@@ -116,7 +119,7 @@ public class VendaService {
 
     public void deletar(Long id) {
         Venda venda = vendaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Venda não encontrada"));
+                .orElseThrow(() -> new VendaNotFoundException("Venda não encontrada"));
 
         vendaRepository.delete(venda);
     }
