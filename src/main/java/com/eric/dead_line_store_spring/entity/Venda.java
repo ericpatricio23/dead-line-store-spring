@@ -13,19 +13,17 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table (name = "vendas")
+@Table(name = "vendas")
 public class Venda {
 
     @Id
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
-
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private LocalDateTime data;
     private Double total;
 
+
     @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ItemVenda> item = new ArrayList<>();
-
-
-
+    private List<ItemVenda> itens = new ArrayList<>();
 }

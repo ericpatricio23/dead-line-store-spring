@@ -10,11 +10,11 @@ import com.eric.dead_line_store_spring.entity.Venda;
 import com.eric.dead_line_store_spring.exception.EstoqueInsuficienteException;
 import com.eric.dead_line_store_spring.exception.ProdutoNotFoundException;
 import com.eric.dead_line_store_spring.exception.VendaNotFoundException;
-import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
 import com.eric.dead_line_store_spring.repository.ItemVendaRepository;
 import com.eric.dead_line_store_spring.repository.ProdutoRepository;
 import com.eric.dead_line_store_spring.repository.VendaRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,21 +26,25 @@ public class VendaService {
     private final ProdutoRepository produtoRepository;
     private final ItemVendaRepository itemVendaRepository;
 
-    public VendaService(ItemVendaRepository itemVendaRepository, VendaRepository vendaRepository, ProdutoRepository produtoRepository) {
+    public VendaService(ItemVendaRepository itemVendaRepository,
+                        VendaRepository vendaRepository,
+                        ProdutoRepository produtoRepository) {
         this.itemVendaRepository = itemVendaRepository;
         this.vendaRepository = vendaRepository;
         this.produtoRepository = produtoRepository;
     }
 
-    public VendaResponseDTO criarVenda(VendaRequestDTO dto ){
+    @Transactional
+    public VendaResponseDTO criarVenda(VendaRequestDTO dto) {
         Produto produto = produtoRepository.findById(dto.produtoId())
-                .orElseThrow(()-> new ProdutoNotFoundException("Produto não encontrado")) ;
+                .orElseThrow(() -> new ProdutoNotFoundException("Produto não encontrado"));
 
-                if (produto.getEstoque()< dto.quantidade()){
-                    throw new EstoqueInsuficienteException("Estoque insuficiente");
-                }
+        if (produto.getEstoque() < dto.quantidade()) {
+            throw new EstoqueInsuficienteException("Estoque insuficiente");
+        }
 
-                produto.setEstoque(produto.getEstoque() - dto.quantidade());
+        produto.setEstoque(produto.getEstoque() - dto.quantidade());
+
         Venda venda = new Venda();
         venda.setData(LocalDateTime.now());
 
@@ -55,16 +59,18 @@ public class VendaService {
         venda.getItens().add(item);
         venda.setTotal(total);
 
-        vendaRepository.save(venda);
-        itemVendaRepository.save(item);
         produtoRepository.save(produto);
+        vendaRepository.save(venda);
+        //  cascade cuida do item por conta do relacionamento
 
         return converterParaDTO(venda);
-
     }
-    public VendaResponseDTO adicionarItem(Long vendaId, ItemVendaRequestDTO dto ) {
+
+    @Transactional
+    public VendaResponseDTO adicionarItem(Long vendaId, ItemVendaRequestDTO dto) {
         Venda venda = vendaRepository.findById(vendaId)
                 .orElseThrow(() -> new VendaNotFoundException("Venda não encontrada"));
+
         Produto produto = produtoRepository.findById(dto.produtoId())
                 .orElseThrow(() -> new ProdutoNotFoundException("Produto não encontrado"));
 
@@ -76,14 +82,12 @@ public class VendaService {
         item.setVenda(venda);
         item.setProduto(produto);
         item.setQuantidade(dto.quantidade());
-
         item.setPrecoUnitario(produto.getPreco());
 
         double subtotal = produto.getPreco() * dto.quantidade();
         item.setSubtotal(subtotal);
 
         venda.getItens().add(item);
-
         produto.setEstoque(produto.getEstoque() - dto.quantidade());
 
         double total = venda.getItens()
@@ -91,7 +95,7 @@ public class VendaService {
                 .mapToDouble(ItemVenda::getSubtotal)
                 .sum();
 
-                venda.setTotal(total);
+        venda.setTotal(total);
 
         produtoRepository.save(produto);
         vendaRepository.save(venda);
@@ -99,7 +103,7 @@ public class VendaService {
         return converterParaDTO(venda);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public VendaResponseDTO buscarPorID(Long id) {
         Venda venda = vendaRepository.findById(id)
                 .orElseThrow(() -> new VendaNotFoundException("Venda não encontrada"));
@@ -107,15 +111,28 @@ public class VendaService {
         return converterParaDTO(venda);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<VendaResponseDTO> listarTodos() {
         return vendaRepository.findAll()
                 .stream()
                 .map(this::converterParaDTO)
                 .toList();
-
     }
 
+    @Transactional
+    public void deletar(Long id) {
+        Venda venda = vendaRepository.findById(id)
+                .orElseThrow(() -> new VendaNotFoundException("Venda não encontrada"));
+
+        //  Restaura estoque de cada produto ao deletar a venda
+        venda.getItens().forEach(item -> {
+            Produto produto = item.getProduto();
+            produto.setEstoque(produto.getEstoque() + item.getQuantidade());
+            produtoRepository.save(produto);
+        });
+
+        vendaRepository.delete(venda);
+    }
 
     private VendaResponseDTO converterParaDTO(Venda venda) {
         List<ItemVendaResponseDTO> itensDTO = venda.getItens()
@@ -137,13 +154,4 @@ public class VendaService {
                 itensDTO
         );
     }
-
-    public void deletar(Long id) {
-        Venda venda = vendaRepository.findById(id)
-                .orElseThrow(() -> new VendaNotFoundException("Venda não encontrada"));
-
-        vendaRepository.delete(venda);
-    }
-
-
 }
