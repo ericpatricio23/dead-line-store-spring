@@ -25,11 +25,13 @@ public class VendaController {
         return vendaService.criarVenda(dto);
     }
 
-    @PostMapping ("/{id}/itens")
-    public VendaResponseDTO adicionarItem(@RequestBody @Valid @PathVariable Long id, ItemVendaRequestDTO dto){
+    @PostMapping("/{id}/itens")
+    public VendaResponseDTO adicionarItem(
+            @PathVariable Long id,
+            @RequestBody @Valid ItemVendaRequestDTO dto
+    ) {
         return vendaService.adicionarItem(id, dto);
     }
-
     @GetMapping
     public List<VendaResponseDTO> listarTodos(){
         return vendaService.listarTodos();
