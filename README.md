@@ -1,5 +1,6 @@
-# Dead Line Store - API REST
+# Dead Line Store - API REST  
 
+![CI](https://github.com/ericpatricio23/dead-line-store-spring/actions/workflows/ci.yml/badge.svg)
 API REST para controle de estoque e vendas de loja, desenvolvida com Spring Boot.
 
 ## Tecnologias
