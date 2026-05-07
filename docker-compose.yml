@@ -1,14 +1,28 @@
 services:
+  postgres:
+    image: postgres:16
+    container_name: deadline-db
+    environment:
+      POSTGRES_DB: deadline
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
   api:
     build: .
+    container_name: deadline-api
     ports:
       - "8080:8080"
+    depends_on:
+      - postgres
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:sqlite:/app/data/loja.db
-      - JWT_SECRET=troque-por-uma-chave-forte
-    volumes:
-      - sqlite-data:/app/data
-    restart: unless-stopped
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/deadline
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      JWT_SECRET: tua-chave-forte
 
 volumes:
-  sqlite-data:
+  postgres-data:
