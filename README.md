@@ -12,7 +12,7 @@ API REST para controle de estoque e vendas de loja, desenvolvida com Spring Boot
 - PostgreSQL (Docker/produção)
 - H2 (testes)
 - Lombok
-- Swagger/OpenAPI
+- Swagger/Postman
 - Docker
 
 ## Funcionalidades
