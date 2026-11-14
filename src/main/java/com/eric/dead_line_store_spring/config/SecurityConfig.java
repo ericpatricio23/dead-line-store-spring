@@ -1,5 +1,6 @@
 package com.eric.dead_line_store_spring.config;
 
+import com.eric.dead_line_store_spring.security.JsonSecurityErrorHandler;
 import com.eric.dead_line_store_spring.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -25,9 +26,14 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JsonSecurityErrorHandler errosJson;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            JsonSecurityErrorHandler errosJson
+    ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.errosJson = errosJson;
     }
 
     @Bean
@@ -73,6 +79,11 @@ public class SecurityConfig {
 
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
+                .exceptionHandling(erros -> erros
+                        .authenticationEntryPoint(errosJson)
+                        .accessDeniedHandler(errosJson)
                 )
 
                 .authorizeHttpRequests(auth -> auth
