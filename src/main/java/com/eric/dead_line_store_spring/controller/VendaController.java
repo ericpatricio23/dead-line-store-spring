@@ -6,6 +6,7 @@ import com.eric.dead_line_store_spring.dto.VendaResponseDTO;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import com.eric.dead_line_store_spring.service.VendaService;
+import com.eric.dead_line_store_spring.dto.VendaCompletaRequestDTO;
 
 import java.util.List;
 
@@ -48,5 +49,13 @@ public class VendaController {
         vendaService.deletar(id);
     }
 
+    @PostMapping("/completa")
+    public VendaResponseDTO criarCompleta(@Valid @RequestBody VendaCompletaRequestDTO dto) {
+
+        return vendaService.criarVendaCompleta(dto);
+    }
+
 }
+
+
 

@@ -13,6 +13,8 @@ import com.eric.dead_line_store_spring.exception.VendaNotFoundException;
 import com.eric.dead_line_store_spring.repository.ItemVendaRepository;
 import com.eric.dead_line_store_spring.repository.ProdutoRepository;
 import com.eric.dead_line_store_spring.repository.VendaRepository;
+import com.eric.dead_line_store_spring.dto.VendaCompletaRequestDTO;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -153,5 +155,40 @@ public class VendaService {
                 venda.getTotal(),
                 itensDTO
         );
+    }
+    @Transactional
+    public VendaResponseDTO criarVendaCompleta(VendaCompletaRequestDTO dto) {
+        Venda venda = new Venda();
+        venda.setData(LocalDateTime.now());
+
+        double total = 0;
+
+        for (ItemVendaRequestDTO itemDto : dto.itens()) {
+            Produto produto = produtoRepository.findById(itemDto.produtoId())
+                    .orElseThrow(() -> new ProdutoNotFoundException("Produto não encontrado"));
+
+            if (produto.getEstoque() < itemDto.quantidade()) {
+                throw new EstoqueInsuficienteException(
+                        "Estoque insuficiente para " + produto.getNome());
+            }
+
+            produto.setEstoque(produto.getEstoque() - itemDto.quantidade());
+
+            ItemVenda item = new ItemVenda();
+            item.setVenda(venda);
+            item.setProduto(produto);
+            item.setQuantidade(itemDto.quantidade());
+            item.setPrecoUnitario(produto.getPreco());
+            item.setSubtotal(produto.getPreco() * itemDto.quantidade());
+
+            venda.getItens().add(item);
+            total += item.getSubtotal();
+        }
+
+        venda.setTotal(total);
+
+        Venda salva = vendaRepository.save(venda);
+
+        return converterParaDTO(salva);
     }
 }
