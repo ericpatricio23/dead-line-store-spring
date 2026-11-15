@@ -7,6 +7,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import java.time.LocalDateTime;
 
@@ -54,5 +55,18 @@ public class GlobalExceptionHandler {
         ErrorResponse erro = new ErrorResponse
                 (LocalDateTime.now(), 500, "Erro interno no servidor");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(erro);
+    }
+    @ExceptionHandler(UsuarioJaExisteException.class)
+    public ResponseEntity<ErrorResponse> handleUsuarioJaExiste(UsuarioJaExisteException ex) {
+        ErrorResponse erro = new ErrorResponse
+                (LocalDateTime.now(), 409, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleCorpoInvalido() {
+        ErrorResponse erro = new ErrorResponse
+                (LocalDateTime.now(), 400, "Corpo da requisição inválido");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
     }
 }

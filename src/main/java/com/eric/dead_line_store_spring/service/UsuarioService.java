@@ -1,13 +1,18 @@
 package com.eric.dead_line_store_spring.service;
 
+import com.eric.dead_line_store_spring.dto.UsuarioRequestDTO;
+import com.eric.dead_line_store_spring.dto.UsuarioResponseDTO;
 import com.eric.dead_line_store_spring.entity.Role;
 import com.eric.dead_line_store_spring.entity.Usuario;
+import com.eric.dead_line_store_spring.exception.UsuarioJaExisteException;
 import com.eric.dead_line_store_spring.repository.UsuarioRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuarioService {
@@ -44,5 +49,29 @@ public class UsuarioService {
         admin.setRole(Role.ADMIN);
 
         usuarioRepository.save(admin);
+    }
+
+    @Transactional
+    public UsuarioResponseDTO criar(UsuarioRequestDTO dto) {
+        String username = dto.username().trim();
+
+        if (usuarioRepository.findByUsername(username).isPresent()) {
+            throw new UsuarioJaExisteException("Já existe um usuário com este nome");
+        }
+
+        Usuario usuario = new Usuario();
+        usuario.setUsername(username);
+        usuario.setSenha(passwordEncoder.encode(dto.senha()));
+        usuario.setRole(dto.perfil());
+
+        Usuario salvo;
+
+        try {
+            salvo = usuarioRepository.saveAndFlush(usuario);
+        } catch (DataIntegrityViolationException e) {
+            throw new UsuarioJaExisteException("Já existe um usuário com este nome");
+        }
+
+        return new UsuarioResponseDTO(salvo.getId(), salvo.getUsername(), salvo.getRole().name());
     }
 }
