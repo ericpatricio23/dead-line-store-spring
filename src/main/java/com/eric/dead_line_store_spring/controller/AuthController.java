@@ -41,6 +41,13 @@ public class AuthController {
 
         String token = jwtService.gerarToken(user);
 
-        return new LoginResponseDTO(token);
+        String perfil = user.getAuthorities().stream()
+                .map(autoridade -> autoridade.getAuthority())
+                .filter(autoridade -> autoridade.startsWith("ROLE_"))
+                .map(autoridade -> autoridade.substring("ROLE_".length()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Usuário sem perfil definido"));
+
+        return new LoginResponseDTO(token, perfil);
     }
 }
