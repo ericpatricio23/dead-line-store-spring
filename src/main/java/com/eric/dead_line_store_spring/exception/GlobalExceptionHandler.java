@@ -69,4 +69,18 @@ public class GlobalExceptionHandler {
                 (LocalDateTime.now(), 400, "Corpo da requisição inválido");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
     }
+
+    @ExceptionHandler(UsuarioNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUsuarioNotFound(UsuarioNotFoundException ex) {
+        ErrorResponse erro = new ErrorResponse
+                (LocalDateTime.now(), 404, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
+    }
+
+    @ExceptionHandler(OperacaoNaoPermitidaException.class)
+    public ResponseEntity<ErrorResponse> handleOperacaoNaoPermitida(OperacaoNaoPermitidaException ex) {
+        ErrorResponse erro = new ErrorResponse
+                (LocalDateTime.now(), 409, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
+    }
 }

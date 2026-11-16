@@ -4,7 +4,9 @@ import com.eric.dead_line_store_spring.dto.UsuarioRequestDTO;
 import com.eric.dead_line_store_spring.dto.UsuarioResponseDTO;
 import com.eric.dead_line_store_spring.entity.Role;
 import com.eric.dead_line_store_spring.entity.Usuario;
+import com.eric.dead_line_store_spring.exception.OperacaoNaoPermitidaException;
 import com.eric.dead_line_store_spring.exception.UsuarioJaExisteException;
+import com.eric.dead_line_store_spring.exception.UsuarioNotFoundException;
 import com.eric.dead_line_store_spring.repository.UsuarioRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class UsuarioService {
@@ -72,6 +76,34 @@ public class UsuarioService {
             throw new UsuarioJaExisteException("Já existe um usuário com este nome");
         }
 
-        return new UsuarioResponseDTO(salvo.getId(), salvo.getUsername(), salvo.getRole().name());
+        return converterParaDTO(salvo);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UsuarioResponseDTO> listar() {
+        return usuarioRepository.findAllByOrderByUsernameAsc()
+                .stream()
+                .map(this::converterParaDTO)
+                .toList();
+    }
+
+    @Transactional
+    public void remover(Long id, String usernameDeQuemRemove) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new UsuarioNotFoundException("Usuário não encontrado"));
+
+        if (usuario.getUsername().equals(usernameDeQuemRemove)) {
+            throw new OperacaoNaoPermitidaException("Você não pode remover o próprio usuário");
+        }
+
+        usuarioRepository.delete(usuario);
+    }
+
+    private UsuarioResponseDTO converterParaDTO(Usuario usuario) {
+        return new UsuarioResponseDTO(
+                usuario.getId(),
+                usuario.getUsername(),
+                usuario.getRole().name()
+        );
     }
 }

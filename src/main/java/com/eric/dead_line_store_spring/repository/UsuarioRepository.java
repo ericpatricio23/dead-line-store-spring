@@ -3,8 +3,12 @@ package com.eric.dead_line_store_spring.repository;
 import com.eric.dead_line_store_spring.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
-public interface UsuarioRepository extends JpaRepository<com.eric.dead_line_store_spring.entity.Usuario, Long> {
+public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+
     Optional<Usuario> findByUsername(String username);
+
+    List<Usuario> findAllByOrderByUsernameAsc();
 }
