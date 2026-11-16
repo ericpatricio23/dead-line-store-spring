@@ -88,16 +88,13 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
+                        // PÚBLICO: login, documentação e verificação de saúde
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/auth/**"
+                                "/auth/**",
+                                "/actuator/health"
                         ).permitAll()
-
-                        // FUNCIONÁRIO — sem autenticação
-                        .requestMatchers(HttpMethod.GET, "/produtos/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/vendas/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/vendas/**").permitAll()
 
                         // SOMENTE ADMIN
                         .requestMatchers(HttpMethod.POST, "/produtos/**").hasRole("ADMIN")
@@ -106,6 +103,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/vendas/**").hasRole("ADMIN")
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
 
+                        // QUALQUER USUÁRIO LOGADO (admin ou funcionário):
+                        // consultar produtos e registrar ou consultar vendas
                         .anyRequest().authenticated()
                 )
 

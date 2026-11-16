@@ -1,16 +1,24 @@
 package com.eric.dead_line_store_spring.controller;
 
 import com.eric.dead_line_store_spring.entity.Produto;
+import com.eric.dead_line_store_spring.entity.Role;
+import com.eric.dead_line_store_spring.entity.Usuario;
 import com.eric.dead_line_store_spring.repository.ProdutoRepository;
+import com.eric.dead_line_store_spring.repository.UsuarioRepository;
 import com.eric.dead_line_store_spring.repository.VendaRepository;
+import com.eric.dead_line_store_spring.security.JwtService;
+import com.eric.dead_line_store_spring.service.CustomUserDetailsService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -22,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@TestPropertySource(properties = "jwt.secret=chave-de-teste-com-mais-de-trinta-e-dois-bytes-ok")
 class VendaCompletaTest {
 
     @Autowired
@@ -33,11 +42,33 @@ class VendaCompletaTest {
     @Autowired
     private VendaRepository vendaRepository;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
+
     private Produto camiseta;
     private Produto bone;
+    private String tokenDoFuncionario;
 
     @BeforeEach
-    void criarProdutos() {
+    void prepararDados() {
+        Usuario funcionario = new Usuario();
+        funcionario.setUsername("funcionario-teste");
+        funcionario.setSenha(passwordEncoder.encode("senha-de-teste-123"));
+        funcionario.setRole(Role.FUNCIONARIO);
+        usuarioRepository.save(funcionario);
+
+        tokenDoFuncionario = jwtService.gerarToken(
+                userDetailsService.loadUserByUsername("funcionario-teste"));
+
         camiseta = salvarProduto("Camiseta", 10.0, 5);
         bone = salvarProduto("Bone", 25.5, 3);
     }
@@ -46,6 +77,7 @@ class VendaCompletaTest {
     void limparBanco() {
         vendaRepository.deleteAll();
         produtoRepository.deleteAll();
+        usuarioRepository.deleteAll();
     }
 
     @Test
@@ -146,6 +178,7 @@ class VendaCompletaTest {
 
     private ResultActions enviar(String corpo) throws Exception {
         return mockMvc.perform(post("/vendas/completa")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenDoFuncionario)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(corpo));
     }
