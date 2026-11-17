@@ -36,19 +36,35 @@ API REST para controle de estoque e vendas de loja, desenvolvida com Spring Boot
 | Campo | Valor |
 |-------|-------|
 | Usuário | `admin` |
-| Senha | definida no código — altere antes de ir para produção |
+| Senha | definida pela variável de ambiente `ADMIN_PASSWORD` (o usuário só é criado na primeira execução, e só se a variável existir) |
 
 ## Como rodar localmente
 
 1. Clone o repositório
-2. Certifique-se de ter o Java 21 instalado
-3. Copie o `application.example.properties` para `application.properties`
-4. Preencha o `jwt.secret` com uma chave secreta
+2. Certifique-se de ter o Java 21 e o Docker instalados
+3. Suba o banco de dados:
+
+```bash
+docker compose up -d postgres
+```
+
+4. Defina as variáveis de ambiente. A configuração fica em `src/main/resources/application.properties` e só lê variáveis, sem nenhum segredo no código:
+
+```bash
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/deadline
+export SPRING_DATASOURCE_USERNAME=postgres
+export SPRING_DATASOURCE_PASSWORD=postgres
+export JWT_SECRET="$(openssl rand -base64 48)"
+export ADMIN_PASSWORD="escolha-uma-senha-forte"
+```
+
 5. Rode o projeto com Maven:
 
 ```bash
 ./mvnw spring-boot:run
 ```
+
+Opcionalmente, `CORS_ALLOWED_ORIGINS` define de quais endereços a interface pode chamar a API (o padrão é `http://localhost:5173`).
 
 ## Como rodar com Docker
 
