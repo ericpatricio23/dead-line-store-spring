@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
@@ -48,6 +49,13 @@ public class GlobalExceptionHandler {
         ErrorResponse erro = new ErrorResponse
                 (LocalDateTime.now(), 401, "Usuário ou senha inválidos");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(erro);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
+        ErrorResponse erro = new ErrorResponse
+                (LocalDateTime.now(), ex.getStatusCode().value(), ex.getReason());
+        return ResponseEntity.status(ex.getStatusCode()).body(erro);
     }
 
     @ExceptionHandler(Exception.class)
