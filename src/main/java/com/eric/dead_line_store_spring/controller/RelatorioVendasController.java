@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.List;
+import com.eric.dead_line_store_spring.dto.VendaResponseDTO;
 import java.time.format.DateTimeParseException;
 
 @RestController
@@ -31,5 +34,16 @@ public class RelatorioVendasController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mês inválido. Use o formato AAAA-MM");
         }
         return service.gerar(anoMes);
+    }
+
+    @GetMapping("/vendas/dia")
+    public List<VendaResponseDTO> vendasDoDia(@RequestParam String data) {
+        LocalDate dia;
+        try {
+            dia = LocalDate.parse(data);
+        } catch (DateTimeParseException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data inválida. Use o formato AAAA-MM-DD");
+        }
+        return service.vendasDoDia(dia);
     }
 }

@@ -19,8 +19,10 @@ import java.util.TreeMap;
 public class RelatorioVendasService {
 
     private final VendaRepository vendaRepository;
+    private final VendaService vendaService;
 
-    public RelatorioVendasService(VendaRepository vendaRepository) {
+    public RelatorioVendasService(VendaRepository vendaRepository, VendaService vendaService) {
+        this.vendaService = vendaService;
         this.vendaRepository = vendaRepository;
     }
 
@@ -69,5 +71,9 @@ public class RelatorioVendasService {
 
     private double arredondar(double valor) {
         return Math.round(valor * 100.0) / 100.0;
+    }
+
+    public java.util.List<com.eric.dead_line_store_spring.dto.VendaResponseDTO> vendasDoDia(LocalDate dia) {
+        return vendaService.listarDoDia(dia);
     }
 }

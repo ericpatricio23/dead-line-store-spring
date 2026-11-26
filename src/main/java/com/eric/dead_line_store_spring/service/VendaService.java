@@ -195,4 +195,14 @@ public class VendaService {
 
         return converterParaDTO(salva);
     }
+
+    @Transactional(readOnly = true)
+    public List<VendaResponseDTO> listarDoDia(java.time.LocalDate dia) {
+        return vendaRepository
+                .findByDataGreaterThanEqualAndDataLessThanOrderByData(
+                        dia.atStartOfDay(), dia.plusDays(1).atStartOfDay())
+                .stream()
+                .map(this::converterParaDTO)
+                .toList();
+    }
 }
