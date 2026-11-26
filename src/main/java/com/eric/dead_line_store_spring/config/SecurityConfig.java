@@ -102,6 +102,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/produtos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/vendas/**").hasRole("ADMIN")
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers("/relatorios/**").hasRole("ADMIN")
 
                         // QUALQUER USUÁRIO LOGADO (admin ou funcionário):
                         // consultar produtos e registrar ou consultar vendas
