@@ -15,8 +15,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,6 +36,9 @@ class VendaServiceTest {
 
     @Mock
     private ItemVendaRepository itemVendaRepository;
+
+    @Spy
+    private Clock relogio = Clock.system(ZoneId.of("America/Sao_Paulo"));
 
     @InjectMocks
     private VendaService vendaService;

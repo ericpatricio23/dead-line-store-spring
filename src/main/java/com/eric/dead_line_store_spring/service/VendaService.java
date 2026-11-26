@@ -18,6 +18,7 @@ import com.eric.dead_line_store_spring.dto.VendaCompletaRequestDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,10 +28,13 @@ public class VendaService {
     private final VendaRepository vendaRepository;
     private final ProdutoRepository produtoRepository;
     private final ItemVendaRepository itemVendaRepository;
+    private final Clock relogio;
 
     public VendaService(ItemVendaRepository itemVendaRepository,
                         VendaRepository vendaRepository,
-                        ProdutoRepository produtoRepository) {
+                        ProdutoRepository produtoRepository,
+                        Clock relogio) {
+        this.relogio = relogio;
         this.itemVendaRepository = itemVendaRepository;
         this.vendaRepository = vendaRepository;
         this.produtoRepository = produtoRepository;
@@ -48,7 +52,7 @@ public class VendaService {
         produto.setEstoque(produto.getEstoque() - dto.quantidade());
 
         Venda venda = new Venda();
-        venda.setData(LocalDateTime.now());
+        venda.setData(LocalDateTime.now(relogio));
 
         ItemVenda item = new ItemVenda();
         item.setVenda(venda);
@@ -159,7 +163,7 @@ public class VendaService {
     @Transactional
     public VendaResponseDTO criarVendaCompleta(VendaCompletaRequestDTO dto) {
         Venda venda = new Venda();
-        venda.setData(LocalDateTime.now());
+        venda.setData(LocalDateTime.now(relogio));
 
         double total = 0;
 
